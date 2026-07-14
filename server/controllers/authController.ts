@@ -112,24 +112,24 @@ export const loginUser = async (req: Request, res: Response) => {
   // GET /api/auth/profile
   //@access Private
 
-  const getUserProfile = async (req: Request, res: Response) => {
-    try {
-      const userId = req.user?.id; // Assuming you have a middleware that sets req.user
-      if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+//   const getUserProfile = async (req: Request, res: Response) => {
+//     try {
+//       const userId = req.user?.id; // Assuming you have a middleware that sets req.user
+//       if (!userId) {
+//         return res.status(401).json({ message: "Unauthorized" });
+//       }
   
-      const user = await User.findById(userId).select("-password");
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
+//       const user = await User.findById(userId).select("-password");
+//       if (!user) {
+//         return res.status(404).json({ message: "User not found" });
+//       }
   
-      res.json(user);
-    } catch (error:any) {
-      console.error(error);
-      res.status(500).json({ message: error.message });
-    }
-  };
+//       res.json(user);
+//     } catch (error:any) {
+//       console.error(error);
+//       res.status(500).json({ message: error.message });
+//     }
+//   };
 
   // Update user profile
     // PUT /api/auth/profile
