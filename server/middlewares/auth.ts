@@ -1,7 +1,7 @@
 import type { Request,NextFunction,Response } from "express";
-import { IUser,User } from "../models/user.js";
+import {User, type IUser } from "../models/User.js";
 import jwt from "jsonwebtoken";
-//import { User } from "../models/user.js";
+//import { User } from "../models/User.js";
 
 export interface AuthRequest extends Request {
   user?: IUser;
@@ -19,7 +19,7 @@ export const protect = async(req: AuthRequest, res: Response, next: NextFunction
     if(req.headers.authorization &&req.headers.authorization.startsWith("Bearer ")){
         try{
             // get token from the bearer
-            token = req.headers.authorization.split(" ")[1];
+           token = req.headers.authorization.split(" ")[1];
             // verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
             // get user from the token

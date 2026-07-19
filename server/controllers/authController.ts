@@ -51,15 +51,16 @@ export const registerUser = async (req: Request, res: Response) => {
             role: user.role,
             token: generateToken(user._id.toString()),
         });
+        return;
         
     }else{
         res.status(400).json({ message: "Invalid user data and the user could not be created" });
     }
 
 
-    await user.save();
+    // await user.save();
 
-    res.status(201).json({ message: "User registered successfully", user: user });
+    // res.status(201).json({ message: "User registered successfully", user: user });
   } catch (error:any) {
     console.error(error);
     res.status(500).json({ message: error.message  });

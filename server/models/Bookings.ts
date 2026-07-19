@@ -26,17 +26,22 @@ const bookingSchema = new Schema<IBooking>({
  time: { type: String, required: true },
  guests: { type: Number, required: true ,min: 1, max: 20 },
  status: { type: String, enum: ["pending", "confirmed", "cancelled", "completed"], default: "confirmed" },
- bookingId: { type: String, required: true, unique: true },
+ bookingId: {
+  type: String,
+  required: true,
+  unique: true,
+  default: () => `GR-${crypto.randomBytes(4).toString("hex").toUpperCase()}`,
+},
  occasion: { type: String, trim: true },
  specialRequests: { type: String, trim: true },
 }, { timestamps: true });
 
 
-bookingSchema.pre("save", function() {
-    if(!this.bookingId){
-        this.bookingId = `GR-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
-    }
-})
+// bookingSchema.pre("save", function() {
+//     if(!this.bookingId){
+//         this.bookingId = `GR-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+//     }
+// })
 
 export const Booking = model<IBooking>("Booking", bookingSchema);
   

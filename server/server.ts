@@ -4,8 +4,9 @@ import type { Request, Response } from 'express';
 import cors from "cors";
 import connectDB from './config/db.js';
 import authRoutes from "./routes/authRoutes.js";
-import restaurantRouter from "./routes/RestaurantRoutes.js";
-import bookingRouter from "./routes/BookingRoutes.js";
+import restaurantRouter from "./routes/restaurantRoutes.js";
+import bookingRouter from "./routes/bookingRoutes.js";
+import ownerRouter from "./routes/ownerRoutes.js";
 const app = express();
 
 // Connect to MongoDB
@@ -24,6 +25,8 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRouter);
 app.use('/api/bookings', bookingRouter)
+app.use('/api/owner', ownerRouter)
+
 //global error handler
 app.use((err: Error, req: Request, res: Response, next: Function) => {
     console.error(err.stack);

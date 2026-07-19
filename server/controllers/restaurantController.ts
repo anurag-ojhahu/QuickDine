@@ -1,7 +1,7 @@
 // get all restaurents with search and filter
 import type{ Request, Response } from "express";
-import type{ IRestaurant} from "../models/Restaurants.js";
-import { Restaurant } from "../models/Restaurants.js";
+import type{ IRestaurant} from "../models/Restaurant.js";
+import { Restaurant } from "../models/Restaurant.js";
 import { User } from "../models/User.js";
 import jwt from "jsonwebtoken";
 import {Booking} from "../models/Bookings.js";

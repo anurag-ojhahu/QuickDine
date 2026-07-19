@@ -1,6 +1,6 @@
 
 
-import { Router } from "lucide-react";
+import { Router } from "express";
 import { protect } from "../middlewares/auth.js";
 import { cancelBooking, createBooking, getMyBookings } from "../controllers/bookingController.js";
 

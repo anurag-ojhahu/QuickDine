@@ -40,7 +40,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
                 return;
             }  
             const booking = await Booking.create({
-                user: (req.user as any)?._id,
+                user: req.user?._id,
                 restaurant: restaurantId,
                 date: new Date(date),
                 time,
@@ -68,7 +68,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
 export const getMyBookings = async (req: AuthRequest, res: Response): Promise<void> => {
 
     try{
-        const bookings = (await Booking.find({ user: (req.user as any)?._id }).populate("restaurant", "name address location image")).sort({date: -1, time: -1});
+        const bookings = (await Booking.find({ user:req.user?._id }).populate("restaurant", "name address location image")).sort({date: -1, time: -1});
 
          res.json(bookings);
     }catch(error:any){
@@ -91,7 +91,7 @@ export const cancelBooking = async (req: AuthRequest, res: Response): Promise<vo
         }
 
         // check if the booking belongs to the logged in user
-        if(booking.user.toString() !== (req.user as any)?._id.toString()){
+        if(booking.user.toString() !== req.user?._id.toString()){
             res.status(403).json({ message: "You are not authorized to cancel this booking" });
             return;
         }booking.status = "cancelled";

@@ -1,5 +1,6 @@
 import mongoose, { model, Types } from "mongoose";
 import {Schema} from "mongoose";
+//import { Document } from "postcss";
 import Document = mongoose.Document;
  
 export interface IRestaurant extends Document {
