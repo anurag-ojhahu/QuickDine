@@ -77,7 +77,7 @@ export const getFeaturedRestaurants = async (req: Request, res: Response): Promi
 export const getRestaurantsBySlug = async (req: Request, res: Response): Promise<void> =>{
     try{
        
-        const restaurant = await Restaurant.findOne({ slug: req.params.slug});
+        const restaurant = await Restaurant.findOne({ slug: req.params.slug } as any);
         if(!restaurant){ 
             res.status(404).json({ message: "Restaurant not found" });
             return;
@@ -89,7 +89,15 @@ export const getRestaurantsBySlug = async (req: Request, res: Response): Promise
 
            try{
             const token = req.headers.authorization.split(" ")[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
+            if (!token) {
+                res.status(404).json({ message: "Restaurant not found" });
+                return;
+            }
+            const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+            if (typeof decoded.id !== "string") {
+                res.status(404).json({ message: "Restaurant not found" });
+                return;
+            }
             const user = await User.findById(decoded.id);
             if(user && (user.role === "admin") || user && (user.role === "owner" && restaurant.owner.toString() === user._id.toString() ) ){
                 isAuthorised = true;
@@ -154,4 +162,3 @@ export const getRestaurantsAvailability = async (req: Request, res: Response): P
         res.status(500).json({ message: error.message });
     }
 }
-

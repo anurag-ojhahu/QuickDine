@@ -1,9 +1,7 @@
-import mongoose, { model, Types } from "mongoose";
+import { model, Types } from "mongoose";
 import {Schema} from "mongoose";
-//import { Document } from "postcss";
-import Document = mongoose.Document;
  
-export interface IRestaurant extends Document {
+export interface IRestaurant {
   name: string;
   slug: string;
   description: string;
@@ -51,4 +49,4 @@ const RestaurantSchema = new Schema<IRestaurant>({
 
 
 
-export const Restaurant = model<IRestaurant & mongoose.Document>("Restaurant", RestaurantSchema);
+export const Restaurant = model("Restaurant", RestaurantSchema);

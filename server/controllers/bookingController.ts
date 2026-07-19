@@ -10,6 +10,10 @@ import { Restaurant } from "../models/Restaurant.js";
 export const createBooking = async (req: AuthRequest, res: Response): Promise<void> => {
 
     try{
+        if (!req.user) {
+            res.status(401).json({ message: "Not authorized" });
+            return;
+        }
         const { restaurantId, date, time, guests, occasion, specialRequests} = req.body;
 
          if(!restaurantId || !date || !time || !guests){
@@ -40,7 +44,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
                 return;
             }  
             const booking = await Booking.create({
-                user: req.user?._id,
+                user: req.user._id,
                 restaurant: restaurantId,
                 date: new Date(date),
                 time,
@@ -68,7 +72,13 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
 export const getMyBookings = async (req: AuthRequest, res: Response): Promise<void> => {
 
     try{
-        const bookings = (await Booking.find({ user:req.user?._id }).populate("restaurant", "name address location image")).sort({date: -1, time: -1});
+        if (!req.user) {
+            res.status(401).json({ message: "Not authorized" });
+            return;
+        }
+        const bookings = await Booking.find({ user: req.user._id })
+            .populate("restaurant", "name address location image")
+            .sort({ date: -1, time: -1 });
 
          res.json(bookings);
     }catch(error:any){
@@ -84,6 +94,10 @@ export const getMyBookings = async (req: AuthRequest, res: Response): Promise<vo
 export const cancelBooking = async (req: AuthRequest, res: Response): Promise<void> => {
 
     try{
+        if (!req.user) {
+            res.status(401).json({ message: "Not authorized" });
+            return;
+        }
         const booking = await Booking.findById(req.params.id);
         if(!booking){
             res.status(404).json({ message: "Booking not found" });
@@ -91,7 +105,7 @@ export const cancelBooking = async (req: AuthRequest, res: Response): Promise<vo
         }
 
         // check if the booking belongs to the logged in user
-        if(booking.user.toString() !== req.user?._id.toString()){
+        if(booking.user.toString() !== req.user._id.toString()){
             res.status(403).json({ message: "You are not authorized to cancel this booking" });
             return;
         }booking.status = "cancelled";
@@ -106,4 +120,3 @@ export const cancelBooking = async (req: AuthRequest, res: Response): Promise<vo
         res.status(400).json({ message: error.message });
     }
 }
-

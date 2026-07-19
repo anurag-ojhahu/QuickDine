@@ -1,11 +1,9 @@
 
- import {Types} from "mongoose";
- import mongoose, { model } from "mongoose";
+ import {Types, model} from "mongoose";
 import {Schema} from "mongoose";
-import type { IUser } from "./User.js";
 import crypto from "crypto";
 
-export interface IBooking extends Document {
+export interface IBooking {
  user: Types.ObjectId;
  restaurant: Types.ObjectId;
  date: Date;
@@ -43,5 +41,5 @@ const bookingSchema = new Schema<IBooking>({
 //     }
 // })
 
-export const Booking = model<IBooking>("Booking", bookingSchema);
+export const Booking = model("Booking", bookingSchema);
   

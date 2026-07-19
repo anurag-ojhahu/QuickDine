@@ -2,11 +2,12 @@
 import type { AuthRequest } from "../middlewares/auth.js";
 import type { Response } from "express";
 import { Restaurant } from "../models/Restaurant.js";
-import { resolve } from "node:dns";
-import { rejects } from "node:assert";
+import type { HydratedDocument } from "mongoose";
+import type { IRestaurant } from "../models/Restaurant.js";
 import {v2 as cloudinary} from "cloudinary";
-import { Booking } from "../models/Bookings.js";
-import { GiConfirmed } from "react-icons/gi";
+import { Booking, type IBooking } from "../models/Bookings.js";
+
+type RestaurantDocument = HydratedDocument<IRestaurant>;
 
 
 // Helper function to upload buffer to cloudnary 
@@ -29,8 +30,13 @@ const uploadToCloudinary = (filebuffer:Buffer): Promise<{secure_url:string}> =>{
 // type GET /api/owner/restaurant
 export const getOwnerRestaurant = async (req:AuthRequest, res:Response):Promise<void> =>{
  try {
+    const ownerId = req.user?._id;
+    if (!ownerId) {
+      res.status(401).json({ message: "Not authorized" });
+      return;
+    }
     // use _id which exists on the user model/type instead of id
-    const restaurant = await Restaurant.findOne({ owner: req.user?._id })
+    const restaurant = await Restaurant.findOne({ owner: ownerId } as any) as RestaurantDocument | null;
     if(!restaurant){
         res.status(200).json(null);
         return;
@@ -49,7 +55,12 @@ export const getOwnerRestaurant = async (req:AuthRequest, res:Response):Promise<
 // type POST /api/owner/restaurant
 export const createOwnerRestaurant = async (req:AuthRequest, res:Response):Promise<void> =>{
  try {
-    const existing = await Restaurant.findOne({ owner: req.user?._id })
+    const ownerId = req.user?._id;
+    if (!ownerId) {
+      res.status(401).json({ message: "Not authorized" });
+      return;
+    }
+    const existing = await Restaurant.findOne({ owner: ownerId } as any)
     if(existing){
       res.status(400).json({message:"you already have a restaurant for this data"});
         return;
@@ -96,7 +107,7 @@ export const createOwnerRestaurant = async (req:AuthRequest, res:Response):Promi
         tags: parsedTags,
         available_slots:parsedSlots,
         totalSeats: totalSeats?Number(totalSeats):20,
-        owner:req.user?._id,
+        owner: ownerId,
         status: "pending",
 
 
@@ -117,7 +128,12 @@ export const createOwnerRestaurant = async (req:AuthRequest, res:Response):Promi
 // type PUT /api/owner/restaurant
 export const updateOwnerRestaurant = async (req:AuthRequest, res:Response):Promise<void> =>{
  try {
-    const restaurant = await Restaurant.findOne({owner:req.user?._id})
+    const ownerId = req.user?._id;
+    if (!ownerId) {
+      res.status(401).json({ message: "Not authorized" });
+      return;
+    }
+    const restaurant = await Restaurant.findOne({ owner: ownerId } as any) as RestaurantDocument | null;
     if(!restaurant){
         res.status(404).json({message:"restaurant profile not founf"});
         return; 
@@ -130,7 +146,7 @@ export const updateOwnerRestaurant = async (req:AuthRequest, res:Response):Promi
    if(location) restaurant.location = location;
    if(address) restaurant.address = address;
    if(chef) restaurant.chef = chef;
-   if(totalSeats) restaurant.totalSeats = totalSeats;
+   if(totalSeats) restaurant.totalSeats = Number(totalSeats);
 
    if(tags){
      restaurant.tags = typeof tags === "string" ? tags.split(",").map((t)=>t.trim()):tags;
@@ -159,12 +175,19 @@ export const updateOwnerRestaurant = async (req:AuthRequest, res:Response):Promi
 // type GET /api/owner/restaurant
 export const getOwnerBookings = async (req:AuthRequest, res:Response):Promise<void> =>{
  try {
-      const restaurant = await Restaurant.findOne({owner:req.user?._id})
+      const ownerId = req.user?._id;
+      if (!ownerId) {
+        res.status(401).json({ message: "Not authorized" });
+        return;
+      }
+      const restaurant = await Restaurant.findOne({ owner: ownerId } as any) as RestaurantDocument | null;
        if(!restaurant){
         res.status(404).json({message:"restaurant profile not founf"});
         return; 
     }
-    const bookings = (await Booking.find({restaurant:restaurant._id}).populate("user","name email phone")).sort({date:-1, time:-1})
+    const bookings = await Booking.find({ restaurant: restaurant._id })
+        .populate("user", "name email phone")
+        .sort({ date: -1, time: -1 });
     res.json(bookings)
  } catch (error:any) {
    console.error(error);
@@ -178,7 +201,11 @@ export const getOwnerBookings = async (req:AuthRequest, res:Response):Promise<vo
 // type GET /api/owner/restaurant/:id/status
 export const updateBookingStatus = async (req:AuthRequest, res:Response):Promise<void> =>{
  try {
-    const status = req.body;
+    if (!req.user) {
+      res.status(401).json({ message: "Not authorized" });
+      return;
+    }
+    const { status } = req.body as { status?: IBooking["status"] };
     if(!status || !["confirmed", "completed","cancelled"].includes(status) ){
         res.status(400).json({message: "pleae enter a valid booking status"})
         return;
@@ -191,9 +218,9 @@ export const updateBookingStatus = async (req:AuthRequest, res:Response):Promise
     }
 
     // verify booking belongs to the owners reataurnts
-    const restaurant = await Restaurant.findById(booking.restaurant);
-   if(!restaurant || restaurant.owner.toString() !== req.user?._id.tostring()){
-      res.status(401).json({message:"Not authorised to manage this booking"})
+    const restaurant = await Restaurant.findById(booking.restaurant) as RestaurantDocument | null;
+   if(!restaurant || restaurant.owner.toString() !== req.user._id.toString()){
+      res.status(403).json({message:"Not authorised to manage this booking"})
       return
    }
    booking.status = status;
